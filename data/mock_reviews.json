@@ -1,0 +1,100 @@
+[
+  {
+    "source": "appstore",
+    "rating": 1,
+    "title": "Terrible delivery delay and no support",
+    "text": "Tried Ownly because of the zero commission model. Placed an order from absolute favorite restaurant. The app showed delivery in 30 mins, but it took 1.5 hours! The food was cold and there is literally no chat support or call support inside the app. Had to switch back to Swiggy. If you want to compete, please fix your operations. Customer service email: contact-johndoe@gmail.com",
+    "date": "2026-06-25T14:30:00Z"
+  },
+  {
+    "source": "appstore",
+    "rating": 2,
+    "title": "Great price but app is buggy",
+    "text": "The food prices are actually lower than Zomato because of the zero commission model! That is amazing. However, the app is extremely laggy. Every time I try to add items to cart, it gets stuck. Had to relaunch the app three times. Also, payment via UPI failed twice. Phone number +91 98765 43210 is linked to my UPI.",
+    "date": "2026-07-02T19:15:00Z"
+  },
+  {
+    "source": "appstore",
+    "rating": 5,
+    "title": "Unbelievable prices, love it",
+    "text": "Zero commission really makes a difference! The exact same burger that costs 250 on other apps costs only 190 here. Delivery was fast too. Keep it up Rapido!",
+    "date": "2026-07-05T13:00:00Z"
+  },
+  {
+    "source": "reddit",
+    "rating": null,
+    "title": "Ownly by Rapido: Is zero commission sustainable?",
+    "text": "Posted by u/tech_enthusiast: I've been reading about Rapido's new Ownly food delivery app. The zero-commission model for restaurants sounds like a game changer, but how are they going to pay delivery partners? I talked to a delivery guy named Ramesh today. He was complaining that the payout calculations on Ownly are confusing compared to Swiggy/Zomato. He doesn't get incentives for rain or late night deliveries. If delivery partners are unhappy, they will stop taking orders, and delivery times will go up. Thoughts?",
+    "date": "2026-06-20T08:45:00Z"
+  },
+  {
+    "source": "reddit",
+    "rating": null,
+    "title": "Can't even find the app on App Store",
+    "text": "Posted by u/bengaluru_foodie: I live in Indiranagar, Bengaluru. Heard about Ownly and wanted to download it. But searching 'Ownly' on the Apple App Store brings up a bunch of unrelated finance apps. Had to search 'Ownly by Rapido' to find it. This is a huge discovery challenge for normal users. The marketing team needs to fix their SEO/ASO on the app store immediately.",
+    "date": "2026-06-28T11:20:00Z"
+  },
+  {
+    "source": "reddit",
+    "rating": null,
+    "title": "Driver cancelled because of map issue",
+    "text": "Posted by u/hungry_always: Ownly app's GPS/Map is terrible. The delivery partner got assigned to my order but the app pointed him to a location 2km away from my actual address. He called me in frustration saying the Rapido partner app map is totally broken and he cannot find my street. He eventually cancelled the order. I was starving, so I just ordered from Zomato. They need to fix their integration with Google Maps.",
+    "date": "2026-07-01T21:10:00Z"
+  },
+  {
+    "source": "linkedin",
+    "rating": null,
+    "title": "Zero Commission is the future of Food Tech",
+    "text": "Anil Mehta (Restaurant Owner, Bengaluru): We listed our cloud kitchen on Ownly last week. The zero-commission flat fee is saving us 25-30% compared to Swiggy. We can pass these savings to customers. However, the onboarding process was very slow. Took 5 days to approve our menu. Also, the merchant dashboard lacks analytics. We can't see peak hours or customer demographics. Rapido team, please add restaurant analytics!",
+    "date": "2026-06-18T10:00:00Z"
+  },
+  {
+    "source": "linkedin",
+    "rating": null,
+    "title": "Delivery partner perspective on Ownly",
+    "text": "Karan Singh (Logistics Consultant): Fascinating to watch Rapido scale Ownly. But speaking with delivery executives in Koramangala reveals operational bottlenecks. The delivery partner app has high battery drain and crashes frequently when trying to upload delivery photos. Also, there is a lack of local support hubs. If their app glitches, they lose half a day's earnings waiting for online support. Address: 4th Block Koramangala.",
+    "date": "2026-06-29T16:30:00Z"
+  },
+  {
+    "source": "twitter",
+    "rating": null,
+    "title": null,
+    "text": "Tried ordering lunch from @OwnlyApp today. Price was great (saved ₹60), but order got cancelled after 40 mins because no delivery partner was assigned. Rapido has so many bikes, why is delivery partner matching so slow? #Ownly #FoodTech",
+    "date": "2026-07-04T12:45:00Z"
+  },
+  {
+    "source": "twitter",
+    "rating": null,
+    "title": null,
+    "text": "Is Ownly only for Bengaluru? I am in Mumbai and the app says 'outside our service area'. They need to expand soon! The zero commission model is very enticing. Can't wait to stop paying Zomato gold fees. DM me at test-user@example.com when live in Mumbai.",
+    "date": "2026-07-06T09:15:00Z"
+  },
+  {
+    "source": "twitter",
+    "rating": null,
+    "title": null,
+    "text": "@OwnlyApp why is there no option to schedule orders or add delivery instructions? My delivery guy got lost because I couldn't write 'ring the gate bell'. Simple feature missing. Otherwise food was cheap.",
+    "date": "2026-07-03T15:20:00Z"
+  },
+  {
+    "source": "appstore",
+    "rating": 1,
+    "title": "Worst customer care",
+    "text": "Order was marked as delivered but nothing arrived. No customer care number available. Rapido support says food is handled by Ownly, and Ownly support has no phone number. I lost ₹450. Will never use this app again. Switching back to Zomato.",
+    "date": "2026-06-15T22:00:00Z"
+  },
+  {
+    "source": "reddit",
+    "rating": null,
+    "title": "Corporate users struggle with Ownly",
+    "text": "Posted by u/corporate_slave: Our office orders in bulk every Friday. Ownly doesn't allow ordering from multiple restaurants in a single cart, nor does it have corporate billing/invoice options. We need GST invoices sent to accounts-finance@corp.com automatically. Until they add corporate features, we are stuck with Swiggy XL.",
+    "date": "2026-06-22T17:40:00Z"
+  },
+  {
+    "source": "playstore",
+    "rating": 2,
+    "title": "Low delivery payouts",
+    "text": "I am delivery partner. Ownly app pays very less distance payout. Maps show wrong short routes which are actually blocked. We waste petrol and time. Support does not help. Please increase per km rate for delivery boys.",
+    "date": "2026-06-24T18:00:00Z"
+  }
+]

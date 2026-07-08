@@ -1,0 +1,21 @@
+# Secrets and configuration
+.env
+
+# Python cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Runtime-generated output reports and datasets (compiled dynamically by the pipeline)
+consolidated_reviews.json
+email_draft.html
+strategy_qa.json
+themes_roadmap.csv
+weekly_note.md
