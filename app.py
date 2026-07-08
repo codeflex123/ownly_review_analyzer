@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import subprocess
 import pandas as pd
@@ -64,8 +65,8 @@ st.sidebar.subheader("Pipeline Actions")
 if st.sidebar.button("🚀 Run Analysis Pipeline"):
     with st.spinner("Running review aggregation and analysis..."):
         try:
-            # Run run_analyzer.py in a subprocess
-            result = subprocess.run(["python3", "run_analyzer.py"], capture_output=True, text=True, check=True)
+            # Run run_analyzer.py in a subprocess using the active virtualenv python executable
+            result = subprocess.run([sys.executable, "run_analyzer.py"], capture_output=True, text=True, check=True)
             st.sidebar.success("Analysis executed successfully! ✅")
             st.rerun()
         except subprocess.CalledProcessError as e:
