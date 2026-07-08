@@ -6,22 +6,20 @@ This document defines the technical architecture, directory layouts, schemas, an
 
 ## 1. Core Architecture Blueprint
 
-The Ownly Review Analyzer is structured as a modular, decoupled pipeline across 6 distinct operational phases:
+The Ownly Review Analyzer is structured as a modular, decoupled pipeline across 5 distinct operational phases:
 
 ```mermaid
 graph TD
     subgraph Phase 1: Ingestion & Normalization
         A1[Google Play Store Scraper]
         A2[Apple App Store Scraper]
-        A3[Reddit API Scraper]
-        A4[LinkedIn Scraper]
-        A5[Social Media Scraper]
+        A3[Social Ingestion scaling]
     end
 
     subgraph Phase 2: Core Review Analyzer
         B1[PII Masker / Text Cleaning]
-        B2[LLM Theme Generation]
-        B3[Clustering Engine]
+        B2[Groq Payload Sub-sampler]
+        B3[LLM Theme Generation & Clustering]
     end
 
     subgraph Phase 3: Insights & Q&A
@@ -29,39 +27,31 @@ graph TD
         C2[Strategy Q&A Engine]
     end
 
-    subgraph Phase 4: Delivery & mailer
+    subgraph Phase 4: Delivery & Mailer
         D1[HTML Template Compiler]
-        D2[SMTP / Brevo API Dispatcher]
+        D2[SMTP Dispatcher]
     end
 
     subgraph Phase 5: UI & Visualization
-        E1[FastAPI Backend / DB]
-        E2[Streamlit / Next.js Dashboard]
+        E1[Streamlit app.py Hub]
     end
 
-    subgraph Phase 6: Automation & Orchestration
-        F1[Local Daemon Scheduler]
-        F2[GitHub Actions Cron]
-    end
-
-    A1 & A2 & A3 & A4 & A5 -->|JSON Reviews| B1
+    A1 & A2 & A3 -->|JSON Reviews| B1
     B1 --> B2 --> B3
     B3 -->|Theme Map| C1 & C2
     C1 --> D1 --> D2
-    C2 --> E1
-    F1 & F2 -->|Trigger Pipeline| A1
+    C2 & D1 & D2 --> E1
 ```
 
 ### 1.1 Phase Status at a Glance
 
 | Phase | Core Objective | Key Directories & Files | Implementation Status |
 | --- | --- | --- | --- |
-| **Phase 1: Ingestion** | Ingest reviews from Play Store, App Store, Reddit, LinkedIn, Twitter | `data/mock_reviews.json` | Play Store scraper functional; other sources integrated via mock feeds |
-| **Phase 2: Core Analyzer** | Clean data, scrub email/phone PII, run Gemini dynamic theme clustering | `phase2_llm/analyzer.py` | **Fully Implemented** |
-| **Phase 3: Insights** | Generate strategic answers and weekly one-page reports | `weekly_note.md` generation | **Fully Implemented** |
-| **Phase 4: Delivery** | Compile HTML newsletter and dispatch via SMTP / Brevo | `email_draft.html` compiler | **Fully Implemented** (SMTP mailer active) |
-| **Phase 5: UI & Dashboard** | Streamlit / Next.js feedback and theme visualization dashboard | `phase5_ui/` | *Roadmap Phase* |
-| **Phase 6: Automation** | Schedule pipeline weekly via local daemon or GitHub Action | `phase6_automation/` | *Roadmap Phase* |
+| **Phase 1: Ingestion** | Ingest Play Store, App Store, and social reviews, and scale synthesis to 550 items | `phase1_ingestion/ingestor.py` | **Fully Implemented** |
+| **Phase 2: Core Analyzer** | Clean data, scrub email/phone PII, run Groq theme clustering | `phase2_llm/analyzer.py` | **Fully Implemented** (Groq-driven) |
+| **Phase 3: Insights** | Generate strategist answers and weekly pulse reports | `phase3_insights/strategist.py` | **Fully Implemented** |
+| **Phase 4: Delivery** | Compile HTML newsletter and dispatch via SMTP | `phase4_delivery/delivery.py` | **Fully Implemented** (SMTP active) |
+| **Phase 5: UI & Dashboard** | Streamlit visualization, checklist, custom email dispatcher | `app.py` | **Fully Implemented** |
 
 ### 1.2 High-Level Data Flow Sequence
 
@@ -70,23 +60,25 @@ The following sequence diagram outlines the chronological flow of data, transfor
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Src as Feedback Sources (Play Store, Socials)
+    participant Src as Feedback Sources (App Stores, Socials)
     participant Agg as Aggregator (run_analyzer.py)
     participant Scrub as PII Scrubber (analyzer.py)
-    participant Gemini as Gemini API (gemini-1.5-flash)
-    participant Out as Local Outputs (Markdown, HTML)
-    participant Mail as Mailer (SMTP / Brevo)
+    participant Groq as Groq API (llama-3.3-70b-versatile)
+    participant Out as Local Outputs (Markdown, HTML, CSV)
+    participant Mail as Mailer (SMTP)
+    participant UI as Streamlit UI (app.py)
 
-    Src->>Agg: 1. Extract raw reviews (last 4 weeks)
-    Note over Src,Agg: Play Store API crawl + Mock JSON ingest
+    Src->>Agg: 1. Ingest Play/App Store & social mock reviews (last 7 weeks)
+    Note over Src,Agg: Play Store API crawl + App Store RSS + Ingestion Scaling (550 reviews)
     Agg->>Scrub: 2. Submit raw reviews for cleaning
     Note over Scrub: Regex patterns mask phone numbers & emails
     Scrub-->>Agg: 3. Return sanitized, anonymized payload
-    Agg->>Gemini: 4. Post prompt with sanitized dataset
-    Note over Gemini: Group themes, map clusters, answer growth Qs, write note
-    Gemini-->>Agg: 5. Return structured JSON payload
-    Agg->>Out: 6. Compile & write weekly_note.md & email_draft.html
-    Agg->>Mail: 7. Dispatch HTML email newsletter (if SMTP enabled)
+    Agg->>Groq: 4. Post sub-sampled review pool (up to 35 reviews)
+    Note over Groq: Group themes, map clusters, answer growth Qs, write note
+    Groq-->>Agg: 5. Return structured JSON payload
+    Agg->>Out: 6. Compile & write weekly_note.md, email_draft.html, & themes_roadmap.csv
+    Agg->>Mail: 7. Dispatch HTML email newsletter (if SMTP and RECIPIENT_EMAIL enabled)
+    UI->>Agg: 8. Trigger manual runs & send dynamic email reports from frontend
 ```
 
 ---
@@ -98,37 +90,30 @@ ownly_review_analyzer/
 ├── ARCHITECTURE.md            # System architecture details (this file)
 ├── README.md                  # Quickstart and run instructions
 ├── requirements.txt           # Dependency declaration
+├── .gitignore                 # Git ignore configuration
 ├── .env.example               # Configuration template
-├── .env                       # Local secrets (GEMINI_API_KEY, SMTP details)
+├── .env                       # Local secrets (GROQ_API_KEY, SMTP details)
 ├── run_analyzer.py            # Primary CLI execution runner
+├── app.py                     # Main Streamlit dashboard app
 │
 ├── data/
 │   └── mock_reviews.json      # Pre-populated reviews from App Store, Reddit, etc.
 │
 ├── phase1_ingestion/          # INGESTION LAYER
 │   ├── __init__.py
-│   └── ingestor.py            # Handles scrapers (Play Store, App Store, Mock APIs)
+│   └── ingestor.py            # Handles scrapers (Play Store, App Store RSS) and mock scaling
 │
 ├── phase2_llm/                # LLM & ANALYSIS LAYER
 │   ├── __init__.py
-│   └── analyzer.py            # PII masking, theme clustering, HTML generation
+│   └── analyzer.py            # PII masking, Groq LLM prompts, HTML compiler
 │
-├── phase3_insights/           # STRATEGIC INSIGHTS LAYER (Future)
+├── phase3_insights/           # STRATEGIC INSIGHTS LAYER
 │   ├── __init__.py
-│   └── strategist.py          # Detailed query processing and growth ideas
+│   └── strategist.py          # Weekly MD note formatter, CSV/JSON report exports
 │
-├── phase4_delivery/           # EMAIL DELIVERY LAYER (Future)
-│   ├── __init__.py
-│   └── mailer.py              # Brevo API / SMTP mail dispatch logic
-│
-├── phase5_ui/                 # USER INTERFACE LAYER (Future)
-│   ├── __init__.py
-│   ├── app.py                 # FastAPI backend
-│   └── dashboard.py           # Streamlit frontend
-│
-└── phase6_automation/         # CRON / SCHEDULER LAYER (Future)
+└── phase4_delivery/           # EMAIL DELIVERY LAYER
     ├── __init__.py
-    └── orchestrator.py        # Local time checker and scheduler loop
+    └── delivery.py            # SMTP mail dispatch logic
 ```
 
 ---
@@ -136,7 +121,7 @@ ownly_review_analyzer/
 ## 3. Detailed Phase Breakdown
 
 ### Phase 1: Ingestion & Normalization (`phase1_ingestion/`)
-*   **Purpose**: Gathers feedback from multiple channels, normalizes fields, and filters to the last 4 weeks.
+*   **Purpose**: Gathers feedback from multiple channels, normalizes fields, and filters to the last 7 weeks. Scales the workload to exactly 550 entries.
 *   **Target Identifiers**:
     *   *Google Play Store*: Package `com.ctrlx.ownly`
     *   *Apple App Store*: ID `6739922216`
@@ -153,15 +138,14 @@ ownly_review_analyzer/
     ```
 
 ### Phase 2: Core Review Analyzer (`phase2_llm/`)
-*   **Purpose**: Preprocesses feedback, scrubs PII, discovers themes, and clusters reviews.
+*   **Purpose**: Preprocesses feedback, scrubs PII, sub-samples the payload to fit token restrictions, and executes theme clustering.
 *   **PII Masking Rules**:
     *   *Emails*: Regex `[\w\.-]+@[\w\.-]+\.\w+` replaced with `[EMAIL]`.
     *   *Phone Numbers*: Regex `(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}\b|\b\d{10}\b` replaced with `[PHONE]`.
     *   *Names*: Prompt-guided filtering to redact personal names (e.g. Ramesh, John) and exact addresses.
-*   **Theme Generation**:
-    *   Calls the Gemini LLM (`gemini-1.5-flash` or similar) to define exactly **3 to 5 high-level themes** that encapsulate the reviews.
-    *   *Constraint*: Must dynamically group, not hardcode, themes.
-*   **Clustering**: Assigns every review to a generated theme ID.
+*   **Theme Generation & Clustering**:
+    *   Calls the Groq LLM (`llama-3.3-70b-versatile`) to define high-level themes that encapsulate the reviews.
+    *   Assigns every review to a generated theme ID.
 
 ### Phase 3: Insights & Strategy (`phase3_insights/`)
 *   **Purpose**: Creates the strategic report answering specific business questions:
@@ -179,22 +163,16 @@ ownly_review_analyzer/
 ### Phase 4: Delivery (`phase4_delivery/`)
 *   **Purpose**: Compiles a professional HTML email with the insights and drafts/sends it.
 *   **Delivery Infrastructure**:
-    *   *SMTP Path*: `smtp.gmail.com` via Port 465 (using app passwords).
-    *   *API Path (Production)*: Brevo API Integration using HTTP requests (to bypass SMTP port blocks on cloud hosts like Railway).
+    *   *SMTP Path*: `smtp.gmail.com` via Port 465 (using app passwords) to dispatch emails securely.
 
-### Phase 5: UI & Dashboard (`phase5_ui/`)
-*   **Purpose**: visual interface for restaurant owners and product managers.
+### Phase 5: UI & Dashboard (`app.py`)
+*   **Purpose**: Visual interface for product and growth managers.
 *   **Dashboard Features**:
-    -   Theme breakdown pie chart.
-    -   Review feed filtered by source, rating, or theme.
-    -   Growth/action idea tracking board.
-    -   Downloadable reports (PDF / CSV).
-
-### Phase 6: Automation & Orchestration (`phase6_automation/`)
-*   **Purpose**: Triggers the entire pipeline weekly on a defined day (e.g., Tuesday 10 AM UTC).
-*   **Automation Types**:
-    1.  *Local Orchestrator*: Continuously running daemon checking time using `pytz.timezone('Asia/Kolkata')`.
-    2.  *GitHub Actions*: Workflow file `.github/workflows/weekly_audit.yml` triggered via cron schedules.
+    -   Theme breakdown metrics and Plotly charts.
+    -   Interactive reviews feed filtered by source, rating, theme, and query text.
+    -   Growth/action idea checkbox checklist using Streamlit session state.
+    -   Downloadable reports (PDF / CSV / MD).
+    -   Dynamic email delivery triggers.
 
 ---
 
@@ -254,4 +232,4 @@ The LLM is prompted to return a valid JSON payload matching this exact schema:
 1.  **Double-Shield Approach**:
     -   *Shield 1 (Regex)*: Input content is passed through regex checks in Python to immediately replace emails and phone numbers.
     -   *Shield 2 (LLM Instruction)*: Prompt rules strictly forbid printing user/driver names, exact locations, or metadata in quotes, theme explanations, or answers.
-2.  **No Storage of Identifiers**: The system database (`reviews.db`) and markdown files must store ONLY anonymized strings.
+2.  **No Storage of Identifiers**: The system stores ONLY anonymized strings.

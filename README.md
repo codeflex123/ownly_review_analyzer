@@ -1,23 +1,24 @@
 # Ownly Review Analyzer
 
-An automated, AI-powered review intelligence pipeline built for **Ownly**—Rapido's zero-commission food delivery application. The system scrapes real-time reviews from the Google Play Store, merges them with social media and App Store feedback, clusters them into themes using LLMs, and compiles weekly strategic pulse notes delivered via email.
+An automated, AI-powered review intelligence pipeline built for **Ownly**—Rapido's zero-commission food delivery application. The system scrapes reviews from the Google Play Store and Apple App Store, scales them to represent high-fidelity workloads, clusters them into themes using the Groq LLM, and compiles weekly strategic pulse notes that can be downloaded or emailed directly from the UI.
 
 ---
 
 ## 🌟 Features
 
-*   **Multi-Source Feed Ingestion**: Scrapes Google Play Store reviews for `com.ctrlx.ownly` (real-time) and integrates with mock datasets representing App Store, Reddit, LinkedIn, and Twitter mentions.
+*   **Multi-Source Feed Ingestion**: Scrapes Google Play Store reviews for `com.ctrlx.ownly` (real-time) and parses Apple App Store RSS XML feeds. Integrates with mock datasets representing Reddit, LinkedIn, and Twitter mentions, scaling up to exactly **550 reviews** for high-fidelity testing.
 *   **Dual-Shield PII Protection**: Strips emails and phone numbers using regex patterns, and prompts the LLM to redact user/driver names and specific address locations.
-*   **Dynamic LLM Theme Clustering**: Dynamically categories feedback into 3–5 themes, avoiding hardcoded classifications.
+*   **Dynamic LLM Theme Clustering**: Dynamically categorizes feedback into themes, avoiding hardcoded classifications.
 *   **Strategic Insights answering Q&A**: Focuses on core app struggle points, delivery partner difficulties, competitor-switching causes, and discovery hurdles.
 *   **Weekly One-Page Note Compilation**: Generates top themes, anonymized quotes, and action ideas.
 *   **Styled HTML Email Deliverability**: Generates responsive, beautifully styled HTML reports (`email_draft.html`) and delivers them via SMTP.
+*   **Interactive Streamlit Dashboard**: Provides an operational UI at `app.py` displaying rating metrics, Plotly visualizations, checklist initiative tracking, and custom email delivery.
 
 ---
 
 ## 🏗️ Phase-Wise Architecture View
 
-The system is designed as a modular, decoupled pipeline across 6 phases:
+The system is designed as a modular, decoupled pipeline across 5 phases:
 
 ```mermaid
 graph TD
@@ -25,7 +26,7 @@ graph TD
         A[Ingestion Scrapers & Files]
     end
     subgraph Phase 2: Core Analyzer
-        B[PII Masker & LLM Engine]
+        B[PII Masker & Groq Engine]
     end
     subgraph Phase 3: Insights
         C[Weekly Pulse & Strategy Q&A]
@@ -33,25 +34,20 @@ graph TD
     subgraph Phase 4: Delivery
         D[HTML Compiler & SMTP Mailer]
     end
-    subgraph Phase 5: UI
-        E[FastAPI & Streamlit Hub]
-    end
-    subgraph Phase 6: Automation
-        F[Local & GitHub Actions Cron]
+    subgraph Phase 5: UI Dashboard
+        E[Streamlit Hub App]
     end
 
     A --> B --> C --> D
-    C --> E
-    F --> A
+    C & D & E --> E
 ```
 
 ### Architectural Phases:
-1.  **Phase 1: Ingestion & Normalization**: Collects raw reviews from Google Play Store (`com.ctrlx.ownly`), Apple App Store (`6739922216`), Reddit, LinkedIn, and social media. Filters to the last 4 weeks.
-2.  **Phase 2: Core Analyzer (Currently Implemented)**: Cleans input data, runs regular expression-based PII scrubbing (emails/phone numbers), and sends reviews to the Gemini LLM for dynamic theme discovery and review clustering.
+1.  **Phase 1: Ingestion & Normalization**: Collects raw reviews from Google Play Store (`com.ctrlx.ownly`), Apple App Store (`6739922216`), Reddit, LinkedIn, and social media. Dynamically scales the test workload to exactly 550 entries.
+2.  **Phase 2: Core Analyzer**: Cleans input data, runs regular expression-based PII scrubbing (emails/phone numbers), sub-samples reviews to respect rate limits, and sends them to the Groq API (`llama-3.3-70b-versatile`) for dynamic theme discovery.
 3.  **Phase 3: Insights & Q&A**: Assembles the weekly "one-page note" (top themes, anonymized quotes, actions) and provides strategy answers to the primary business questions.
-4.  **Phase 4: Delivery**: Compiles the report into a styled email newsletter and dispatches it via SMTP / Brevo API.
-5.  **Phase 5: UI & Dashboard**: Provides a Streamlit visualization dashboard for product and growth managers.
-6.  **Phase 6: Automation & Orchestration**: Automates the pipeline running weekly (Tuesdays) via a local daemon or GitHub Actions workflow.
+4.  **Phase 4: Delivery**: Compiles the report into a styled email newsletter and dispatches it via SMTP.
+5.  **Phase 5: UI & Dashboard**: Provides an interactive Streamlit visualization dashboard for product and growth managers.
 
 ---
 
@@ -59,19 +55,33 @@ graph TD
 
 ```
 ownly_review_analyzer/
-├── ARCHITECTURE.md            # Decoupled 6-phase system architecture specifications
+├── ARCHITECTURE.md            # Decoupled 5-phase system architecture specifications
 ├── README.md                  # Quickstart guide (this file)
 ├── requirements.txt           # Dependency requirements
+├── .gitignore                 # Git ignore file for secrets and build cache
 ├── .env.example               # Configuration template
 ├── .env                       # Local configurations (created during setup)
 ├── run_analyzer.py            # Primary pipeline CLI execution entrypoint
+├── app.py                     # Main Streamlit dashboard entrypoint
 │
 ├── data/
 │   └── mock_reviews.json      # Structured customer feedback dataset for testing
 │
-└── phase2_llm/
+├── phase1_ingestion/
+│   ├── __init__.py
+│   └── ingestor.py            # Handles scrapers (Play Store, App Store RSS) and scale synthesis
+│
+├── phase2_llm/
+│   ├── __init__.py
+│   └── analyzer.py            # PII scrubbing, Groq LLM API request execution, HTML compilation
+│
+├── phase3_insights/
+│   ├── __init__.py
+│   └── strategist.py          # Formats weekly markdown note and exports CSV/JSON reports
+│
+└── phase4_delivery/
     ├── __init__.py
-    └── analyzer.py            # Core logic (PII scrubbing, LLM prompts, HTML newsletter compiler)
+    └── delivery.py            # Secure SMTP delivery logic with yagmail
 ```
 
 ---
@@ -94,8 +104,8 @@ python3 -m pip install -r requirements.txt
     ```
 2.  Open [`.env`](file:///Users/ferozkhan/Desktop/ownly_review_analyzer/.env) and populate the values:
     ```env
-    # Required: Gemini API key for LLM theme clustering
-    GEMINI_API_KEY=your_gemini_api_key_here
+    # Required: Groq API key for LLM theme clustering
+    GROQ_API_KEY=your_groq_api_key_here
 
     # Optional: SMTP details for active email dispatch
     SMTP_HOST=smtp.gmail.com
@@ -107,22 +117,20 @@ python3 -m pip install -r requirements.txt
 
 ---
 
-## 🚀 Running the Analyzer
+## 🚀 Running the Analyzer & UI Dashboard
 
-Run the pipeline using the command line:
+### Launch Dashboard:
+Start the interactive Streamlit user interface locally:
+```bash
+python3 -m streamlit run app.py
+```
+From the dashboard interface, you can trigger the analysis pipeline dynamically, filter reviews by rating/source/theme, check off strategic action items, or send the email report to any recipient.
+
+### CLI Pipeline Run:
+Alternatively, you can run the pipeline directly using the command line:
 ```bash
 python3 run_analyzer.py
 ```
-
-### Script Execution Logic:
-1.  **Ingests Play Store reviews** for `com.ctrlx.ownly` from the last 4 weeks.
-2.  **Loads App Store, Reddit, LinkedIn, and Twitter feedback** from `data/mock_reviews.json`.
-3.  **Applies PII scrubbing** to clean emails and phone numbers.
-4.  **Processes with Gemini LLM** to analyze, group themes, and generate strategic action items.
-5.  **Outputs files**:
-    *   [`weekly_note.md`](file:///Users/ferozkhan/Desktop/ownly_review_analyzer/weekly_note.md): Markdown note detailing top themes, user quotes, and action items.
-    *   [`email_draft.html`](file:///Users/ferozkhan/Desktop/ownly_review_analyzer/email_draft.html): A premium, ready-to-view email report template.
-6.  **Dispatches email**: If SMTP details are completed, it sends the HTML report to the recipient.
 
 ---
 
